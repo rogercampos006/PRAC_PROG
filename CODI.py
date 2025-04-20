@@ -1,9 +1,20 @@
 import csv
 import numpy as np
 
-class Recomana:
+from abc import ABC
+
+class Recomanador(ABC):
+    def __init__(self, dataset):
+        self.dataset = dataset
 
 class Simple(Recomana):
+    def __init__ (self, dataset, min_vots):
+        super().__init__(dataset)
+        self.min_vots = min_vots
+        self.valoracions = None
+    
+    def get_valoracio (self):
+        valoracions_valides = self.dataset.caloracions[self.dataset.ratings['valoracio'] > 0]
 
 class Colaboratiu(Recomana):
 

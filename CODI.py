@@ -6,17 +6,42 @@ class Recomanador(ABC):
     def __init__(self, dataset):
         self.dataset = dataset
 
-class Simple(Recomana):
+class Simple(Recomanador):
     def __init__ (self, dataset, min_vots):
         super().__init__(dataset)
         self.min_vots = min_vots
         self.valoracions = None
     
     def get_valoracio (self):
-        valoracions_valides = self.dataset.caloracions[self.dataset.ratings['valoracio'] > 0]
-
-class Colaboratiu(Recomana):
-
+        mask = self.dataset.ratings['rating'] > 0
+        ratings_valides = self.dataset.ratings[mask]
+        item_ids, num_vots = np.unique(ratings_valides['itemId'], return_counts=True)
+        avg_items = [np.mean(ratings_valides[ratings_valides['itemId'] == item]['rating']) 
+             for item in item_ids]
+        valid_items = item_ids[num_vots >= self.min_vots]
+        valid_avg = [avg_items[i] for i in range(len(item_ids)) if num_vots[i] >= self.min_vots]
+        valid_vots = num_vots[num_vots >= self.min_vots]
+        avg_global = np.mean(valid_avg)
+        self.scores['score'] = ((valid_vots / (valid_vots + self.min_vots)) * valid_avg + (self.min_vots / (valid_vots + self.min_vots)) * avg_global)
+        recomanacions = (
+        self.scores[~self.scores['itemId'].isin(rated_items)].sort_values('score', ascending=False).head(k))
+        return recomanacions[['itemId', 'score']].values.tolist()
+   
+    def recomana (self):
+        if self.scores is None:
+            self.calcular_scores()
+        user_ratings = self.dataset.get_user_ratings(user_id)
+        rated_items = user_ratings[user_ratings['rating'] > 0]['itemId']
+        filtered_items = [(item, score) for item, score in zip(self.scores['itemId'], self.scores['score']) if item not in set(rated_items)]
+class Colaboratiu(Recomanador):
+    def __init__(self, dataset, k_similars):
+        super().__init__(dataset)
+        self.k_similars = k_similars
+    
+    def calcul_mitjana (self, id_usuari):
+        valoracions = self.dataset.get_user_ratings(id_usuari)
+        return n.mean(valoracions[valoracions['valoracio'] > 0]['valoracio'] )
+    def recomana
 class Dataset(ABC):
     """Classe abstracta base per a la gestió de conjunts de dades amb numpy"""
     
@@ -110,6 +135,4 @@ class BookDataset(Dataset):
             ratings_data,
             dtype=[('userId', 'U15'), ('itemId', 'U15'), ('rating', 'f4')]
         )
-
-
-
+        

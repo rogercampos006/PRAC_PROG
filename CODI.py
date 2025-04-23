@@ -17,7 +17,7 @@ class Simple(Recomanador):
         ratings_valides = self.dataset.ratings[mask]
         item_ids, num_vots = np.unique(ratings_valides['itemId'], return_counts=True)
         avg_items = [np.mean(ratings_valides[ratings_valides['itemId'] == item]['rating']) 
-             for item in item_ids]
+             for item in item_ids:
         valid_items = item_ids[num_vots >= self.min_vots]
         valid_avg = [avg_items[i] for i in range(len(item_ids)) if num_vots[i] >= self.min_vots]
         valid_vots = num_vots[num_vots >= self.min_vots]
